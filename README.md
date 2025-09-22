@@ -17,24 +17,26 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from statsmodels.tsa.seasonal import seasonal_decompose
 
-# Load dataset (reset index so Month is a normal column)
-data = pd.read_csv("air traffic.csv")
+# Load dataset
+data = pd.read_csv("/mnt/data/Amazon.csv")
 
-# Clean Pax column
-data["Pax"] = data["Pax"].str.replace(",", "").astype(int) / 1_000_000  # in millions
-
-# Build proper datetime column
-data["Date"] = pd.to_datetime(data["Year"].astype(str) + "-" + data["Month"].astype(str))
+# Convert Date column to datetime
+data["Date"] = pd.to_datetime(data["Date"])
 
 # Set Date as index
 data.set_index("Date", inplace=True)
 
-# Perform seasonal decomposition (monthly data, yearly seasonality)
-decomposition = seasonal_decompose(data["Pax"], model="additive", period=12)
+# Use Adjusted Close for time series
+ts = data["Adj Close"].asfreq("B")  # Business-day frequency
+
+# Perform seasonal decomposition (weekly, monthly, yearly patterns are possible)
+decomposition = seasonal_decompose(ts.dropna(), model="multiplicative", period=252)  
+# 252 ≈ trading days in a year
 
 # Plot all components
 decomposition.plot()
 plt.show()
+
 
 
 ```
